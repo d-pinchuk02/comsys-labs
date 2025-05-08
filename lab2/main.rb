@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 
-require "./formatter"
-require "./tokenizer"
-require "./validator"
+require "../lab1/formatter"
+require "../lab1/tokenizer"
+require "../lab1/validator"
 
 input = File.read("input.txt")
 
