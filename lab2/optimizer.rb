@@ -12,6 +12,7 @@ class Optimizer
     @tokens = remove_multiplication_by_zero(@tokens)
     @tokens = remove_addition_subtraction_of_zero(@tokens)
     @tokens = remove_division_of_zero(@tokens)
+    @tokens = combine_constants(@tokens)
     [@tokens, @changes]
   end
 
@@ -134,5 +135,52 @@ class Optimizer
       end
     end
     new_tokens
+  end
+
+  def combine_constants(tokens)
+    new_tokens = []
+    i = 0
+    while i < tokens.length
+      token = tokens[i]
+
+      if token.type == :NUMBER
+        sequence = [token]
+        j = i + 1
+        while j + 1 < tokens.length && 
+              tokens[j].type == :OPERATOR &&
+              tokens[j+1].type == :NUMBER
+          sequence << tokens[j] << tokens[j+1]
+          j += 2
+        end
+
+        if sequence.length > 1
+          result = sequence[0].value.to_f
+          operations = []
+          (1...sequence.length).step(2) do |k|
+            operator = sequence[k].value
+            number = sequence[k+1].value.to_f
+            case operator
+            when '+' then result += number
+            when '-' then result -= number
+            when '*' then result *= number
+            when '/' then result = result.fdiv(number)
+            end
+            operations << "#{sequence[k].value}#{sequence[k+1].value}"
+          end
+          
+          @changes << "Обчислення констант: #{sequence[0].value}#{operations.join} = #{result}"
+          new_tokens << Token.new(:NUMBER, ('%.5g' % result), token.position)
+          i = j
+        else
+          new_tokens << token
+          i += 1
+        end
+      else
+        new_tokens << token
+        i += 1
+      end
+    end
+
+    new_tokens.length != tokens.length ? combine_constants(new_tokens) : new_tokens
   end
 end

@@ -376,4 +376,113 @@ RSpec.describe 'Optimizer' do
       expect(result.map(&:value)).to eq(['6', '/', '2'])
     end
   end
+
+  describe '#combine_constants' do
+    it 'combines addition of two numbers' do
+      tokens = [
+        Token.new(:NUMBER, '2', 0),
+        Token.new(:OPERATOR, '+', 1),
+        Token.new(:NUMBER, '3', 2)
+      ]
+      optimizer.instance_variable_set(:@tokens, tokens)
+      result = optimizer.send(:combine_constants, tokens)
+      expect(result.map(&:value)).to eq(['5'])
+    end
+
+    it 'combines subtraction of two numbers' do
+      tokens = [
+        Token.new(:NUMBER, '8', 0),
+        Token.new(:OPERATOR, '-', 1),
+        Token.new(:NUMBER, '3', 2)  
+      ]
+      optimizer.instance_variable_set(:@tokens, tokens)
+      result = optimizer.send(:combine_constants, tokens)
+      expect(result.map(&:value)).to eq(['5'])
+    end
+
+    it 'combines negative numbers properly' do
+      tokens = [
+      Token.new(:NUMBER, '-5', 0),
+      Token.new(:OPERATOR, '+', 1),
+      Token.new(:NUMBER, '-3', 2)
+      ]
+      optimizer.instance_variable_set(:@tokens, tokens)
+      result = optimizer.send(:combine_constants, tokens)
+      expect(result.map(&:value)).to eq(['-8'])
+    end
+
+    it 'handles subtraction resulting in negative number' do
+      tokens = [
+      Token.new(:NUMBER, '2', 0),
+      Token.new(:OPERATOR, '-', 1),
+      Token.new(:NUMBER, '5', 2)
+      ]
+      optimizer.instance_variable_set(:@tokens, tokens) 
+      result = optimizer.send(:combine_constants, tokens)
+      expect(result.map(&:value)).to eq(['-3'])
+    end
+
+    it 'combines multiplication of two numbers' do
+      tokens = [
+        Token.new(:NUMBER, '4', 0),
+        Token.new(:OPERATOR, '*', 1),
+        Token.new(:NUMBER, '3', 2)
+      ]
+      optimizer.instance_variable_set(:@tokens, tokens)
+      result = optimizer.send(:combine_constants, tokens)
+      expect(result.map(&:value)).to eq(['12'])
+    end
+
+    it 'combines division of two numbers' do
+      tokens = [
+        Token.new(:NUMBER, '15', 0),
+        Token.new(:OPERATOR, '/', 1),
+        Token.new(:NUMBER, '3', 2)
+      ]
+      optimizer.instance_variable_set(:@tokens, tokens)
+      result = optimizer.send(:combine_constants, tokens)
+      expect(result.map(&:value)).to eq(['5'])
+    end
+
+    it 'preserves operations with variables' do
+      tokens = [
+        Token.new(:NUMBER, '2', 0),
+        Token.new(:OPERATOR, '+', 1),
+        Token.new(:IDENTIFIER, 'x', 2)
+      ]
+      optimizer.instance_variable_set(:@tokens, tokens)
+      result = optimizer.send(:combine_constants, tokens)
+      expect(result.map(&:value)).to eq(['2', '+', 'x'])
+    end
+
+    it 'handles multiple decimal constant operations' do
+      tokens = [
+      Token.new(:NUMBER, '1.5', 0),
+      Token.new(:OPERATOR, '+', 1), 
+      Token.new(:NUMBER, '2.5', 2),
+      Token.new(:OPERATOR, '-', 3),
+      Token.new(:NUMBER, '1.0', 4)
+      ]
+      optimizer.instance_variable_set(:@tokens, tokens)
+      result = optimizer.send(:combine_constants, tokens)
+      expect(result.map(&:value)).to eq(['3'])
+    end
+
+    it 'preserves variables between constant operations' do
+      tokens = [
+        Token.new(:NUMBER, '2', 0),
+        Token.new(:OPERATOR, '+', 1),
+        Token.new(:NUMBER, '3', 2), 
+        Token.new(:OPERATOR, '*', 3),
+        Token.new(:IDENTIFIER, 'x', 4),
+        Token.new(:OPERATOR, '+', 5),
+        Token.new(:NUMBER, '4', 6),
+        Token.new(:OPERATOR, '-', 7),
+        Token.new(:NUMBER, '1', 8)
+      ]
+      optimizer.instance_variable_set(:@tokens, tokens)
+      result = optimizer.send(:combine_constants, tokens)
+      expect(result.map(&:value)).to eq(['5', '*', 'x', '+', '3'])
+    end
+  end
 end
