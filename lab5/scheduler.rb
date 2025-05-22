@@ -158,8 +158,9 @@ class Scheduler
     max_time = @tasks.map(&:end_time).max
     active_processors = @tasks.map(&:processor).uniq.sort
 
+    align_size = @tasks.size < 100 ? (@tasks.size < 10 ? 3 : 4) : 5
     print "Процесор".ljust(10).concat("| ")
-    (0...max_time).each { |t| print "#{t}".center(3) }
+    (0...max_time).each { |t| print "#{t}".center(align_size) }
     puts ""
 
     print "".ljust(12, "-")
@@ -174,7 +175,7 @@ class Scheduler
 
       processor_tasks.each do |task|
         (task.start_time...task.end_time).each do |time_slot|
-          timeline[time_slot] = "T#{task.id}".center(3)
+          timeline[time_slot] = "T#{task.id}".center(align_size)
         end
       end
 
