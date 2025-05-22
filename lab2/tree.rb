@@ -63,39 +63,65 @@ class TreeBuilder
     stack.pop
   end
 
+  def height(node)
+    return 0 if node.nil?
+    1 + [height(node.left), height(node.right)].max
+  end
+
+  def balance_factor(node)
+    return 0 if node.nil?
+    height(node.left) - height(node.right)
+  end
+
+  def right_rotate(y)
+    return y if y.nil? || y.left.nil?
+    x = y.left
+    t2 = x.right
+    x.right = y
+    y.left = t2
+    x
+  end
+
+  def left_rotate(x)
+    return x if x.nil? || x.right.nil?
+    y = x.right
+    t2 = y.left
+    y.left = x
+    x.right = t2
+    y
+  end
+
   def balance_tree(node)
     return nil if node.nil?
 
-    # Separate operators and operands
-    operators, operands = inorder_traversal(node)
-    # Rebuild balanced tree
-    build_balanced_tree(operators, operands, 0, operands.length)
-  end
+    loop do
+      node.left = balance_tree(node.left)
+      node.right = balance_tree(node.right)
 
-  private
+      bf = balance_factor(node)
+      balanced = true
 
-  def inorder_traversal(node, operators = [], operands = [])
-    return [operators, operands] if node.nil?
-    
-    inorder_traversal(node.left, operators, operands)
-    if node.left.nil? && node.right.nil?
-      operands << node
-    else
-      operators << node
+      # Left heavy
+      if bf > 1
+        if balance_factor(node.left) < 0
+          node.left = left_rotate(node.left)
+        end
+        node = right_rotate(node)
+        balanced = false
+      end
+
+      # Right heavy
+      if bf < -1
+        if balance_factor(node.right) > 0
+          node.right = right_rotate(node.right)
+        end
+        node = left_rotate(node)
+        balanced = false
+      end
+
+      break if balanced
     end
-    inorder_traversal(node.right, operators, operands)
-    [operators, operands]
-  end
 
-  def build_balanced_tree(operators, operands, start, finish)
-    return operands.shift if start >= finish
-    
-    mid = (start + finish) / 2
-    node = TreeNode.new(operators.shift.value, nil, nil)
-    
-    node.left = build_balanced_tree(operators, operands, start, mid - 1)
-    node.right = build_balanced_tree(operators, operands, mid + 1, finish)
-    
     node
   end
 end

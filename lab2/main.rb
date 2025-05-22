@@ -35,39 +35,26 @@ if errors.empty?
   optimizer = Optimizer.new(tokens)
   optimized_tokens, changes = optimizer.optimize
 
-  puts "-" * 50
-  print "Оптимізовані токени: ".cyan.bold
-  optimized_tokens.each do |token|
-    print "#{token.type.to_s.green.bold}(#{token.value.to_s.bold}) "
+  if !changes.empty?
+    puts "-" * 50
+    puts "Виконані оптимізації:".cyan.bold
+    changes.each { |change| puts "#{change}" }
   end
-  puts ""
-  puts "-" * 50
 
-  puts "Виконані оптимізації:".cyan.bold
-  changes.each { |change| puts "#{change}" }
-
-  puts "-" * 50
-  puts "Оптимізований вираз: #{optimized_tokens.map(&:value).join(' ').gray}".cyan.bold
-  
   tree_builder = TreeBuilder.new()
   postfix = tree_builder.infix_to_postfix(optimized_tokens)
+  puts "-" * 50
+  print "Постфіксна форма: ".cyan.bold
+  postfix.each do |token|
+    print "#{token.value.to_s.gray.bold} "
+  end
+  
   tree = tree_builder.postfix_to_tree(postfix)
   balanced_tree = tree_builder.balance_tree(tree)
-
-  puts "Постфіксна форма:".cyan.bold
-  postfix.each do |token|
-    print "#{token.type.to_s.green.bold}(#{token.value.to_s.bold}) "
-  end
-
-  puts "Дерево виразу:".cyan.bold
-  puts tree.to_s
+  puts " "
   puts "-" * 50
-
-  puts "Збалансоване дерево виразу:".cyan.bold
+  puts "Паралельне дерево виразу:".cyan.bold
   puts balanced_tree.to_s
-  puts "-" * 50
-
-  puts "Вираз оптимізовано.".green.bold
 else
   puts "Знайдені помилки:".cyan.bold
   errors.each do |error|
