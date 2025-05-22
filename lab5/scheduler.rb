@@ -93,7 +93,7 @@ class Scheduler
       task.dependencies.each do |dep_id|
         dep_task = @tasks.find { |t| t.id == dep_id }
         if dep_task && dep_task.end_time > 0
-          dependency_end_time = [dependency_end_time, dep_task.end_time].max
+          dependency_end_time = [dependency_end_time, dep_task.end_time].max + 1
         end
       end
 
